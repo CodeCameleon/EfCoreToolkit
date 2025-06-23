@@ -1,4 +1,6 @@
 ﻿using CodeCameleon.EfCoreToolkit.EntityInterfaces;
+using CodeCameleon.EfCoreToolkit.EntityMetadataInterfaces;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CodeCameleon.EfCoreToolkit.BaseEntities;
 
@@ -6,11 +8,41 @@ namespace CodeCameleon.EfCoreToolkit.BaseEntities;
 /// Represents an entity that can be modified and hard deleted.
 /// </summary>
 public abstract class RegularEntity
-    : ICreatable, IModifiable, IHardDeletable
+    : ICreationMetadata, IModificationMetadata, IHardDeletable
 {
-    /// <inheritdoc />
-    public DateTime? CreatedAt { get; internal set; }
+    /// <summary>
+    /// The field containing the creation timestamp of the entity.
+    /// </summary>
+    private DateTime? _createdAt;
+
+    /// <summary>
+    /// The field containing the last modification timestamp of the entity.
+    /// </summary>
+    private DateTime? _updatedAt;
 
     /// <inheritdoc />
-    public DateTime? UpdatedAt { get; internal set; }
+    public DateTime? CreatedAt => _createdAt;
+
+    /// <inheritdoc />
+    DateTime? ICreationMetadata.CreatedAt
+    {
+        set => _createdAt = value;
+    }
+
+    /// <inheritdoc />
+    public DateTime? UpdatedAt => _updatedAt;
+
+    /// <inheritdoc />
+    DateTime? IModificationMetadata.UpdatedAt
+    {
+        set => _updatedAt = value;
+    }
+
+    /// <inheritdoc />
+    [NotMapped]
+    bool ICreationMetadata.IsCreationPending => !CreatedAt.HasValue;
+
+    /// <inheritdoc />
+    [NotMapped]
+    bool ICreationMetadata.IsCreated => CreatedAt.HasValue;
 }
